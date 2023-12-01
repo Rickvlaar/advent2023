@@ -1,0 +1,88 @@
+from typing import Callable
+from itertools import product
+from rich.console import Console
+import time
+import numpy as np
+
+console = Console(color_system='truecolor', width=250)
+
+
+def parse_file_as_list(file):
+    return [num.rstrip('\n') for num in open(file=file, newline='\n')]
+
+
+def convert_str_list_to_int_list(str_list: list[str]) -> list[int]:
+    return [int(element) for element in str_list]
+
+
+# Time function runtime in ms
+def get_runtime(function: Callable):
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter_ns()
+        result = function(*args, **kwargs)
+        end = time.perf_counter_ns()
+        console.print(f'[bold blue]{function.__name__}[/bold blue]',
+                      '[red]ran for[/red]', (end - start) / 1e6,
+                      '[red]ms[/red]')
+        return result
+
+    return wrapper
+
+
+# Time function runtime for 'n' iterations in ms
+def time_function(iterations: int = 1):
+    def decorator(function: Callable):
+        def wrapper(*args, **kwargs):
+            start = time.perf_counter_ns()
+
+            result = None
+            for _ in range(iterations):
+                result = function(*args, **kwargs)
+
+            end = time.perf_counter_ns()
+
+            # Average runtime
+            console.print(f'[bold blue]{function.__name__}[/bold blue]',
+                          f'[bright_magenta bold]AVERAGE[/bright_magenta bold]',
+                          f'[red]runtime for[/red]',
+                          f'{iterations}',
+                          f'[red]iterations[/red]',
+                          (end - start) / 1e6 / iterations,
+                          '[red]ms[/red]')
+
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def get_the_hood_8(grid: np.array):
+    max_y = grid.shape[0]
+    max_x = grid.shape[1]
+    the_hood = dict()
+    for y, line in enumerate(grid):
+        for x, num in enumerate(line):
+            xs = [x_2 for x_2 in range(x - 1, x + 2) if 0 <= x_2 < max_x]
+            ys = [y_2 for y_2 in range(y - 1, y + 2) if 0 <= y_2 < max_y]
+            the_hood[(y, x)] = [coord for coord in product(ys, xs) if coord != (y, x)]
+    return the_hood
+
+
+def get_the_hood_straight(grid):
+    max_y = grid.shape[0] - 1
+    max_x = grid.shape[1] - 1
+    the_hood = dict()
+    for y, line in enumerate(grid):
+        for x, num in enumerate(line):
+            neighbs = []
+            if x > 0:
+                neighbs.append((y, x - 1))
+            if x < max_x:
+                neighbs.append((y, x + 1))
+            if y > 0:
+                neighbs.append((y - 1, x))
+            if y < max_y:
+                neighbs.append((y + 1, x))
+            the_hood[(y, x)] = neighbs
+    return the_hood
