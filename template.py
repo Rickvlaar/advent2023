@@ -1,7 +1,7 @@
 from util import console, parse_file_as_list, time_function
 
-test_file = parse_file_as_list('input/_test.txt')
-day_file = parse_file_as_list('input/.txt')
+test_file = parse_file_as_list('input/{day_no}_test.txt')
+day_file = parse_file_as_list('input/{day_no}.txt')
 
 
 @time_function()

@@ -16,7 +16,7 @@ letter_digits = {
 }
 
 
-@time_function()
+@time_function(100)
 def run_a(file: list[str]):
     vals = []
     for line in file:
@@ -34,7 +34,7 @@ def run_a(file: list[str]):
     return sum(vals)
 
 
-@time_function()
+@time_function(100)
 def run_b(file: list[str]):
     vals = []
 
@@ -47,14 +47,14 @@ def run_b(file: list[str]):
             max_index = line.rfind(letter_dig)
 
             if min_index != -1:
-                index_letter_dict[min_index] = letter_dig
+                index_letter_dict[min_index] = dig
             if max_index != -1:
-                index_letter_dict[max_index] = letter_dig
+                index_letter_dict[max_index] = dig
 
         lowest_index = min(index_letter_dict) if index_letter_dict else 999
         for index, char in enumerate(line):
             if index >= lowest_index:
-                char_str += letter_digits[index_letter_dict[lowest_index]]
+                char_str += index_letter_dict[lowest_index]
                 break
             elif char.isnumeric():
                 char_str += char
@@ -62,7 +62,7 @@ def run_b(file: list[str]):
         highest_index = max(index_letter_dict) if index_letter_dict else -1
         for index, char in enumerate(reversed(line)):
             if highest_index > len(line) - 1 - index:
-                char_str += letter_digits[index_letter_dict[highest_index]]
+                char_str += index_letter_dict[highest_index]
                 break
             elif char.isnumeric():
                 char_str += char
