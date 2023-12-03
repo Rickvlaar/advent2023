@@ -57,12 +57,14 @@ def time_function(iterations: int = 1):
     return decorator
 
 
-def get_the_hood_8(grid: np.array):
+def get_the_hood_8(grid: np.array, ignored_values: set[str | int | bool] = None):
     max_y = grid.shape[0]
     max_x = grid.shape[1]
     the_hood = dict()
     for y, line in enumerate(grid):
-        for x, num in enumerate(line):
+        for x, value in enumerate(line):
+            if ignored_values and value in ignored_values:
+                continue
             xs = [x_2 for x_2 in range(x - 1, x + 2) if 0 <= x_2 < max_x]
             ys = [y_2 for y_2 in range(y - 1, y + 2) if 0 <= y_2 < max_y]
             the_hood[(y, x)] = [coord for coord in product(ys, xs) if coord != (y, x)]

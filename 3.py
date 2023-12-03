@@ -16,7 +16,7 @@ def run_a(file):
 
     y_numbers_dict = find_numbers(file)
     engine = np.array([list(line) for line in file])
-    the_hood = get_the_hood_8(engine)
+    the_hood = get_the_hood_8(engine, ignored_values={'.'})
 
     engine_part_numbers = []
     for y, number_matches in y_numbers_dict.items():
@@ -36,7 +36,7 @@ def run_a(file):
 def run_b(file):
     y_numbers_dict = find_numbers(file)
     engine = np.array([list(line) for line in file])
-    the_hood = get_the_hood_8(engine)
+    the_hood = get_the_hood_8(engine, ignored_values={'.'})
 
     gear_coord_numbers_dict = defaultdict(list)
     for y, number_matches in y_numbers_dict.items():
@@ -61,7 +61,7 @@ def check_engine_gear(y, match, engine, the_hood):
     for x in range(match.span()[0], match.span()[1]):
         for coord_value in the_hood[y, x]:
             symbol = engine[coord_value]
-            if symbol in '*':
+            if symbol == '*':
                 return coord_value, int(match.group(0))
 
 
