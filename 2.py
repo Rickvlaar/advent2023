@@ -17,7 +17,7 @@ def run_a(file: list[str]):
 
 
 @time_function()
-def run_b(file):
+def run_b(file: list[str]):
     game_details_dict = parse_game_strings(file)
     needed_cube_colours = get_needed_cubes_by_colour(game_details_dict)
     powers = [prod(details.values()) for details in needed_cube_colours.values()]
@@ -29,25 +29,25 @@ def parse_game_strings(games_strings: list[str]):
     for game in games_strings:
         game_name, splitter, game_details = game.partition(':')
         game_no = int(game_name.lstrip('Game '))
-        game_details = game_details.split('; ')
-        game_details = [{cubes.strip().split(' ')[1]: int(cubes.strip().split(' ')[0]) for cubes in turn.split(',')} for
-                        turn in game_details]
+        game_details = [{colour: int(count) for count, colour in [cubes.strip().split(' ') for cubes in turn.split(',')]} for turn in game_details.split('; ')]
         game_dict[game_no] = game_details
     return game_dict
 
 
-def get_possible_game_numbers(game_details: dict[int: list[dict[str: int]]], max_cubes_config: dict[str: int]):
+def get_possible_game_numbers(games: dict[int: list[dict[str: int]]], max_cubes_config: dict[str: int]):
     possible_games = []
-    for game_no, game_details in game_details.items():
-        possible = True
-        for turn in game_details:
-            for colour in turn:
-                if turn[colour] > max_cubes_config[colour]:
-                    possible = False
-                    break
-        if possible:
+    for game_no, game_details in games.items():
+        if is_game_possible(game_details, max_cubes_config):
             possible_games.append(game_no)
     return possible_games
+
+
+def is_game_possible(game_details, max_cubes_config):
+    for turn in game_details:
+        for colour in turn:
+            if turn[colour] > max_cubes_config[colour]:
+                return False
+    return True
 
 
 def get_needed_cubes_by_colour(game_details: dict[int: list[dict[str: int]]]):
