@@ -36,12 +36,14 @@ def run_b(file: list[str]):
 
     return sum(how_many_copies)
 
+
 def get_won_numbers(game: str) -> set[int]:
     card_winning_nums, your_numbers = game.split('| ')
     your_numbers = {int(num.strip()) for num in your_numbers.strip().split(' ') if num.isnumeric()}
     card, winning_numbers = card_winning_nums.split(': ')
     winning_numbers = {int(num.strip()) for num in winning_numbers.strip().split(' ') if num.isnumeric()}
     return winning_numbers.intersection(your_numbers)
+
 
 if __name__ == '__main__':
     answer_a = run_a(day_file)
