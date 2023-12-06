@@ -5,12 +5,12 @@ day_file = parse_file_as_list('input/{day_no}.txt')
 
 
 @time_function()
-def run_a(file):
+def run_a(file: list[str]):
     pass
 
 
 @time_function()
-def run_b(file):
+def run_b(file: list[str]):
     pass
 
 
