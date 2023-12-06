@@ -1,5 +1,6 @@
 from util import console, parse_file_as_list, time_function
-from math import prod
+from sympy import symbols, solve
+from math import prod, sqrt
 import re
 
 test_file = parse_file_as_list('input/6_test.txt')
@@ -21,7 +22,7 @@ def run_a(file: list[str]):
 def run_b(file: list[str]):
     time = int(''.join([match.group(0) for match in re.finditer('\\d+', file[0])]))
     record = int(''.join([match.group(0) for match in re.finditer('\\d+', file[1])]))
-    return determine_possible_wins(time, record)
+    return determine_possible_wins_performant(time, record)
 
 
 def determine_possible_wins(time: int, record: int) -> int:
@@ -31,6 +32,13 @@ def determine_possible_wins(time: int, record: int) -> int:
         if distance_traveled > record:
             successes += 1
     return successes
+
+
+def determine_possible_wins_performant(time: int, record: int) -> int:
+    acceleration = symbols('acceleration')
+    expr = (time - acceleration) * acceleration - record
+    solved = solve(expr, simplify=False)
+    return round(solved[1]) - round(solved[0] + 1)
 
 
 def get_time_records_dict(file: list[str]):

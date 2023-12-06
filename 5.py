@@ -58,7 +58,6 @@ def determine_locations_by_range(seeds_ranges: list[tuple], source_to_target_map
     for ranges in source_to_target_mappings.values():
         new_ranges = []
         for seed_range in seeds_ranges:
-            # console.print(seed_range)
             changes = False
             for mapped_range in ranges:
 
