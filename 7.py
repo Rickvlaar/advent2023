@@ -1,9 +1,6 @@
-from operator import attrgetter
-from operator import itemgetter
-
 from util import console, parse_file_as_list, time_function
 from collections import Counter
-import re
+from operator import itemgetter
 
 test_file = parse_file_as_list('input/7_test.txt')
 day_file = parse_file_as_list('input/7.txt')
