@@ -29,6 +29,6 @@ def prepare_python_file(day: int):
 
 
 if __name__ == '__main__':
-    day_number = 6
+    day_number = 7
     get_input_and_write_to_file(day_number)
     prepare_python_file(day_number)
