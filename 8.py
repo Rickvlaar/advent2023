@@ -1,6 +1,7 @@
 from util import console, parse_file_as_list, time_function
 from itertools import cycle
 import re
+from math import lcm
 
 test_file = parse_file_as_list('input/8_test.txt')
 day_file = parse_file_as_list('input/8.txt')
@@ -30,22 +31,18 @@ def run_b(file: list[str]):
     starting_nodes = {node for node in node_destination_dict if node[2] == 'A'}
     end_nodes = {node for node in node_destination_dict if node[2] == 'Z'}
 
-    console.print(starting_nodes)
-    console.print(end_nodes)
+    node_steps = []
+    for node in starting_nodes:
+        instructions = cycle([0 if char == 'L' else 1 for char in file[0]])
+        steps = 0
+        while node not in end_nodes:
+            steps += 1
+            direction = next(instructions)
+            node = node_destination_dict[node][direction]
+        node_steps.append(steps)
 
-    steps = 0
-    while True:
-        direction = next(instructions)
-        steps += 1
-        new_locations = set()
-        for node in starting_nodes:
-            location = node_destination_dict[node][direction]
-            new_locations.add(location)
-        if new_locations == end_nodes:
-            break
-        starting_nodes = new_locations
+    return lcm(*node_steps)
 
-    return steps
 
 
 
