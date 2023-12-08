@@ -9,9 +9,9 @@ day_file = parse_file_as_list('input/8.txt')
 
 @time_function()
 def run_a(file: list[str]):
-    # convert LR to index 0 1
     instructions = cycle([0 if char == 'L' else 1 for char in file[0]])
-    node_destination_dict = {match.group(1): (match.group(2), match.group(3)) for match in [re.match('([A-Z]{3}) = \(([A-Z]{3}), ([A-Z]{3})\)', line) for line in file[2:]]}
+    node_destination_dict = {match.group(1): (match.group(2), match.group(3)) for match in
+                             [re.match('([A-Z0-9]{3}) = \\(([A-Z0-9]{3}), ([A-Z0-9]{3})', line) for line in file[2:]]}
 
     location = 'AAA'
     steps = 0
@@ -24,9 +24,8 @@ def run_a(file: list[str]):
 
 @time_function()
 def run_b(file: list[str]):
-    # convert LR to index 0 1
-    instructions = cycle([0 if char == 'L' else 1 for char in file[0]])
-    node_destination_dict = {match.group(1): (match.group(2), match.group(3)) for match in [re.match('([A-Z]{3}) = \(([A-Z]{3}), ([A-Z]{3})\)', line) for line in file[2:]]}
+    node_destination_dict = {match.group(1): (match.group(2), match.group(3)) for match in
+                             [re.match('([A-Z0-9]{3}) = \\(([A-Z0-9]{3}), ([A-Z0-9]{3})', line) for line in file[2:]]}
 
     starting_nodes = {node for node in node_destination_dict if node[2] == 'A'}
     end_nodes = {node for node in node_destination_dict if node[2] == 'Z'}
@@ -42,8 +41,6 @@ def run_b(file: list[str]):
         node_steps.append(steps)
 
     return lcm(*node_steps)
-
-
 
 
 if __name__ == '__main__':
