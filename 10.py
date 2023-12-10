@@ -1,116 +1,12 @@
 from matplotlib.patches import Polygon
 from util import console, parse_file_as_list, time_function
-from dataclasses import field, dataclass
+from graph_util import Graph
 import matplotlib.pyplot as plt
-import heapq
-import math
 import sys
 import numpy as np
 
 test_file = parse_file_as_list('input/10_test.txt')
 day_file = parse_file_as_list('input/10.txt')
-
-
-@dataclass(order=True)
-class Vertex:
-    coordinate: tuple = field(compare=False)
-    neighbours: list[tuple] = field(compare=False, default_factory=list)
-    distance: int = field(default=math.inf)
-    previous_vertex: 'Vertex' = field(compare=False, default=None)
-
-
-@dataclass
-class Graph:
-    start_vertex_coordinate: tuple
-    target_vertex_coordinate: tuple
-    vertices_queue: list[Vertex] = field(default_factory=list)
-    vertices_dict: dict[tuple, Vertex] = field(default_factory=dict)
-    vertex_neighbours_dict: dict[tuple, list[tuple]] = field(default_factory=dict)
-    target_vertex_with_path: Vertex = None
-    map_dimensions: tuple = None
-
-    def prepare_queue_from_list(self, vertex_coords: list):
-        neighbour_coords = self.vertex_neighbours_dict.get(self.start_vertex_coordinate)
-
-        start_vertex = Vertex(coordinate=self.start_vertex_coordinate,
-                              neighbours=neighbour_coords,
-                              distance=0)
-        self.vertices_dict[start_vertex.coordinate] = start_vertex
-        heapq.heappush(self.vertices_queue, start_vertex)
-
-        for vertex_coord in vertex_coords:
-            if vertex_coord == self.start_vertex_coordinate:
-                continue
-
-            vertex = Vertex(coordinate=vertex_coord,
-                            neighbours=self.vertex_neighbours_dict.get(vertex_coord))
-
-            self.vertices_dict[vertex_coord] = vertex
-
-    def dijk_it(self):
-        while self.vertices_queue:
-            closest_vertex = heapq.heappop(self.vertices_queue)  # will be start_vertex_initially
-
-            # do not process coordinates without neighbours
-            neigbour_coords = self.vertex_neighbours_dict.get(closest_vertex.coordinate)
-            if not neigbour_coords:
-                continue
-
-            # go over each neighbour and check whether the route from source vertex would be shorter
-            dist_from_closest_vertex = closest_vertex.distance + 1
-            for vertex_coord in neigbour_coords:
-                vertex = self.vertices_dict.get(vertex_coord)
-
-                # stop processing when target is reached
-                if self.is_target(vertex):
-                    vertex.previous_vertex = closest_vertex
-                    vertex.distance = dist_from_closest_vertex
-                    self.target_vertex_with_path = vertex
-                    return vertex.distance
-
-                elif dist_from_closest_vertex < vertex.distance:
-                    vertex.distance = dist_from_closest_vertex
-                    vertex.previous_vertex = closest_vertex
-                    heapq.heappush(self.vertices_queue, vertex)
-
-    def is_target(self, vertex: Vertex):
-        if vertex.coordinate == self.target_vertex_coordinate:
-            return True
-        else:
-            return False
-
-    def plot_path_on_map(self):
-        path_map = np.full(shape=self.map_dimensions, fill_value=0, dtype=int)
-        self.fill_map_from_path_vertex(path_map, self.target_vertex_with_path)
-        return path_map
-
-    def fill_map_from_path_vertex(self, path_map: np.ndarray, vertex: Vertex):
-        path_map[vertex.coordinate] = vertex.distance
-        if vertex.previous_vertex:
-            self.fill_map_from_path_vertex(path_map, vertex.previous_vertex)
-
-    def get_path_coordinates_to_target_vertex(self, coordinates: list[tuple], target_vertex: Vertex):
-        coordinates.append(target_vertex.coordinate)
-        if target_vertex.previous_vertex:
-            self.get_path_coordinates_to_target_vertex(coordinates, target_vertex.previous_vertex)
-
-    def get_all_paths_length(self):
-        length = 0
-        for vertex in self.vertices_dict.values():
-            length += 1 if isinstance(vertex.distance, int) else 0
-        return length
-
-    def plot_all_paths_on_map(self):
-        paths_map = np.full(shape=self.map_dimensions, fill_value=0, dtype=int)
-        for coord, vertex in self.vertices_dict.items():
-            paths_map[coord] = vertex.distance if isinstance(vertex.distance, int) else -1
-        return paths_map
-
-    def plot_all_paths_on_map_as_image(self):
-        paths_map = np.full(shape=self.map_dimensions, fill_value=0, dtype=str)
-        for coord, vertex in self.vertices_dict.items():
-            paths_map[coord] = '1' if isinstance(vertex.distance, int) else '.'
-        return paths_map
 
 
 @time_function()
@@ -124,19 +20,19 @@ def run_a(file: list[str]):
 
     coords_list = [(y, x) for y in range(pipe_map.shape[0]) for x in range(pipe_map.shape[1])]
 
-    pipe_graph = Graph(start_coord, (999999, 999999), vertex_neighbours_dict=pipe_neighbours)
+    pipe_graph = Graph(start_vertex_coordinate=start_coord, vertex_neighbours_dict=pipe_neighbours)
     pipe_graph.prepare_queue_from_list(coords_list)
     pipe_graph.dijk_it()
     pipe_graph.map_dimensions = pipe_map.shape
 
-    return max([vertex.distance for vertex in pipe_graph.vertices_dict.values() if isinstance(vertex.distance, int)])
+    return max([vertex.distance for vertex in pipe_graph.coord_vertix_dict.values() if isinstance(vertex.distance, int)])
 
 
 @time_function()
 def run_b(file: list[str], draw_polygon=False):
-    # read the map
     sys.setrecursionlimit(15000)
 
+    # read the map
     pipe_map = np.array([[char for char in line] for line in file])
     pipe_neighbours = get_possible_neighbours(pipe_map)
 
@@ -145,7 +41,7 @@ def run_b(file: list[str], draw_polygon=False):
 
     coords_list = [(y, x) for y in range(pipe_map.shape[0]) for x in range(pipe_map.shape[1])]
 
-    pipe_graph = Graph(start_coord, (999999, 999999), vertex_neighbours_dict=pipe_neighbours)
+    pipe_graph = Graph(start_vertex_coordinate=start_coord, vertex_neighbours_dict=pipe_neighbours)
     pipe_graph.prepare_queue_from_list(coords_list)
     pipe_graph.dijk_it()
     pipe_graph.map_dimensions = pipe_map.shape
@@ -153,29 +49,29 @@ def run_b(file: list[str], draw_polygon=False):
     # find all corners on the path
     paths_map = pipe_graph.plot_all_paths_on_map()
 
-    loop_end_value = max([vertex.distance for vertex in pipe_graph.vertices_dict.values() if isinstance(vertex.distance, int)])
+    loop_end_value = max([vertex.distance for vertex in pipe_graph.coord_vertix_dict.values() if isinstance(vertex.distance, int)])
     target_coords_wheres = np.where(paths_map == (loop_end_value - 1))
     target_coord_1 = (target_coords_wheres[0][0], target_coords_wheres[1][0])
     target_coord_2 = (target_coords_wheres[0][1], target_coords_wheres[1][1])
 
     path_coords = []
-    target_vertex = pipe_graph.vertices_dict[target_coord_1]
+    target_vertex = pipe_graph.coord_vertix_dict[target_coord_1]
     pipe_graph.get_path_coordinates_to_target_vertex(path_coords, target_vertex)
-    path_coords.reverse()
+    path_coords.reverse()  # needed to keep order of vertices correct
 
     loop_end = np.where(paths_map == loop_end_value)  # Y, X
     loop_end_coord = (loop_end[0][0], loop_end[1][0])
     path_coords.append(loop_end_coord)
 
     second_path_coords = []
-    target_vertex = pipe_graph.vertices_dict[target_coord_2]
+    target_vertex = pipe_graph.coord_vertix_dict[target_coord_2]
     pipe_graph.get_path_coordinates_to_target_vertex(second_path_coords, target_vertex)
     path_coords.extend(second_path_coords)
 
     coordinate_symbols = {'F', '7', 'J', 'L', 'S'}
     coords_to_plot = []
     for coord in path_coords:
-        vertex = pipe_graph.vertices_dict[coord]
+        vertex = pipe_graph.coord_vertix_dict[coord]
         # only plot the path
         if not isinstance(vertex.distance, int):
             continue
@@ -192,10 +88,6 @@ def run_b(file: list[str], draw_polygon=False):
 
     area = get_polygon_surface_area_by_coords(polygon_coords)
     return int(area - loop_end_value + 1)
-
-
-def segments(p):
-    return
 
 
 def get_polygon_surface_area_by_coords(polygon_coords: list[tuple]):
